@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex" />
+    <title>ADMIN - <?= mb_strtoupper(EMPRESA, 'UTF-8') ?></title>
+    <link rel="shortcut icon" href="<?= PATH_PUBLIC ?>/img/icons/escudo.png" type="image/png">
+    <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.10.0/css/all.css">
+    <link rel="stylesheet" href="<?= PATH_PUBLIC ?>/css/bootstrap.min.css">
+    <link rel="stylesheet" href="<?= PATH_PUBLIC ?>/css/admin.css">
+    <link rel="stylesheet" href="<?= PATH_PUBLIC ?>/css/sweetalert2.min.css">
+</head>
+
+<body>
+
+    <script async src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.5/dist/sweetalert2.min.js"></script>
+
+    <?php include_once PATH_ROOT . '/views/admin/header.php'; ?>
+    <?php include_once PATH_ROOT . '/views/admin/menu.php'; ?>
+
+    <!-- ESTILOS -->
+    <style>
+        div.crop img {
+            width: 100%;
+            height: 210px;
+            object-fit: cover;
+        }
+
+        div.card {
+            background-color: rgb(247, 247, 247);
+        }
+
+        div.card-footer {
+            background: transparent;
+        }
+
+        h6.pub-categoria {
+            color: var(--color3);
+            font-size: 14px;
+            text-transform: uppercase;
+        }
+
+        a.pub-titulo {
+            font-size: 15px;
+            max-height: 70px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+
+        p.pub-fecha {
+            font-size: 14.5px;
+            margin-bottom: 0px;
+            color: rgb(80, 80, 80);
+        }
+
+        div.card-footer button.btn {
+            min-width: 33px;
+            min-height: 33px;
+            width: 33px;
+            height: 33px;
+            padding: 0px;
+        }
+
+        div.card-footer button.btn:hover {
+            color: white;
+        }
+
+        div.grid-pub {
+            width: 100%;
+            display: inline-flex;
+            flex-wrap: wrap;
+        }
+
+        div.grid-pub div.pub-card {
+            width: calc(100% / 4);
+        }
+
+        @media only screen and (max-width: 1560px) {
+            div.grid-pub div.pub-card {
+                width: calc(100% / 3);
+            }
+        }
+    </style>
+
+    <!-- CUERPO -->
+    <section class="content" id="app">
+
+        <div id="preloader">
+            <div class="loading">
+                <div class="circle"></div>
+            </div>
+        </div>
+
+        <div class="d-flex align-items-center">
+            <div class="tab-titulo">
+                <?= $this->translate('PUBLICACIONES') ?>
+            </div>
+            <div class="ms-auto d-flex align-items-center">
+                <?php if (count($this->listCategorias) > 1) : ?>
+                    <div><?= $this->translate('Categoría') ?> :</div>
+                    <div class="ms-2 me-3">
+                        <?php if (PUB_SUB_CATEG) { ?>
+                            <select class="form-select" onchange="cambiarCategoria(this.value)">
+                                <option value="all"><?= $this->translate('Todas') ?></option>
+                                <?php foreach ($this->listCategorias as $key => $categ) : ?>
+                                    <optgroup label="<?= $categ['nombre'] ?>">
+                                        <?php foreach ($categ['subs'] as $key => $sub) : ?>
+                                            <option value="<?= $sub['idcatg'] ?>" <?= $this->categoriaId == $key ? 'selected' : '' ?>><?= $sub['nombre'] ?></option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
+                                <?php endforeach; ?>
+                            </select>
+                        <?php } else { ?>
+                            <select class="form-select" onchange="cambiarCategoria(this.value)">
+                                <option value="all"><?= $this->translate('Todas') ?></option>
+                                <?php foreach ($this->listCategorias as $key => $categ) { ?>
+                                    <option value="<?= $categ['idcatg'] ?>" <?= $this->categoriaId == $key ? 'selected' : '' ?>><?= $categ['nombre'] ?></option>
+                                <?php } ?>
+                            </select>
+                        <?php } ?>
+                    </div>
+                <?php endif; ?>
+                <a href="/admin/publicacion/editor" class="btn btn-success text-white"><i class="fas fa-plus"></i>&nbsp; <?= $this->translate('Nueva publicación') ?></a>
+            </div>
+        </div>
+        <hr>
+        <div class="grid-pub">
+            <?php
+            foreach ($this->listPublicaciones as $key => $pub) : ?>
+                <div class="pub-card my-2 px-2 py-1" id="pub_<?= $pub['idpub'] ?>">
+                    <div class="card shadow-sm h-100">
+                        <div class="crop">
+                            <img src="<?= $pub['portada'] ?>" onerror="this.src = `/public/img/icons/portada-default.png`">
+                        </div>
+                        <div class="card-body py-3">
+                            <h6 class="pub-categoria text-uppercase fw-bold"><?= $pub['categoria'] ?></h6>
+                            <a href="/pub/<?= $pub['tagname'] ?>" class="pub-titulo text-uppercase" target="_blank"><?= $pub['titulo'] ?></a>
+                            <p class="pub-fecha mt-2"><i class="far fa-calendar-alt"></i> <?= \Admin\Core\Funciones::obtenerFecha($pub['fecpub']) ?>&nbsp;&nbsp; <i class="far fa-clock"></i> <?= \Admin\Core\Funciones::obtenerHora($pub['fecpub']) ?></p>
+                        </div>
+                        <div class="card-footer d-flex align-items-center" style="padding-top: 12px; padding-bottom: 12px;">
+                            <button class="btn btn-outline-success me-2" onclick="location.href = '/admin/publicacion/editor/<?= $pub['idpub'] ?>'" title="Editar"><i class="fas fa-pencil-alt"></i></button>
+                            <button class="btn btn-outline-danger" onclick="eliminarPub('<?= $pub['idpub'] ?>')" title="Eliminar"><i class="far fa-trash-alt"></i></button>
+                            <div class="ms-auto d-flex">
+                                <label class="form-check-label me-1" style="padding-top: 1px; cursor: pointer;" for="check-<?= $pub['idpub'] ?>"><?= $this->translate('Visible') ?></label>
+                                <input class="form-check-input ms-1" type="checkbox" id="check-<?= $pub['idpub'] ?>" onclick="cambiarEstado('<?= $pub['idpub'] ?>')" style="border-radius: 2px; transform: scale(1.1); cursor: pointer;" <?= $pub['visible'] == 'S' ? 'checked' : '' ?>>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach;
+            ?>
+        </div>
+        <hr>
+        <div class="row pb-4 align-items-center">
+            <div class="col-sm-2" style="margin-top: -5px;">
+                Total de publicaciones : &nbsp; <span id="totalPub"><?= $this->totalPublicaciones ?></span>
+            </div>
+            <div class="col-sm">
+                <ul class="pagination justify-content-end mb-0">
+                    <?php echo count($this->listPublicaciones) > 0 ? $this->listPagination : null ?>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <script>
+        let totalPub = parseInt('<?= $this->totalPublicaciones ?>');
+
+        const sweetAlert = (mensaje, icon) => {
+            Swal.fire({
+                icon: icon,
+                text: mensaje,
+            });
+        }
+
+        const eliminarPub = (idpub) => {
+            Swal.fire({
+                icon: 'question',
+                text: '¿Está seguro de eliminar esta publicación?',
+                showDenyButton: true,
+                allowOutsideClick: false,
+                confirmButtonText: 'Aceptar',
+                denyButtonText: 'Cancelar',
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    const url = `/admin/publicacion/eliminar/${idpub}`;
+                    fetch(url, {
+                        method: 'GET'
+                    }).then(function(res) {
+                        return res.text();
+                    }).then(function(res) {
+                        if (res.trim() == 'OK') {
+                            document.getElementById('pub_' + idpub).remove();
+                            totalPub -= 1;
+                            document.getElementById('totalPub').innerText = totalPub;
+                            sweetAlert('Publicación eliminada', 'success');
+                        } else {
+                            sweetAlert(res, 'error');
+                        }
+                    });
+                }
+            });
+        }
+
+        const cambiarEstado = (idpub) => {
+            const estado = document.getElementById('check-' + idpub).checked;
+            const url = `/admin/publicacion/estado/${idpub}/${estado ? 'S' : 'N'}`;
+            fetch(url, {
+                method: 'GET'
+            }).then(function(res) {
+                return res.text();
+            }).then(function(res) {
+                if (res.trim() !== 'OK') {
+                    sweetAlert(res, 'error');
+                }
+            });
+        }
+
+        const cambiarCategoria = (value) => {
+            location.href = '/admin/publicacion/' + value;
+        }
+
+        setTimeout(() => {
+            let loader = document.getElementById('preloader');
+            loader.style.opacity = '0';
+            setTimeout(() => {
+                loader.style.display = 'none';
+            }, 500);
+        }, 2000);
+    </script>
+
+</body>
+
+</html>
