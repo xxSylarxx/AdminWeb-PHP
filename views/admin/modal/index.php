@@ -315,7 +315,7 @@
                             html = `<img src="${path}" width="100%">`;
                         }
                     } else if (this.modoFiles == 'V') {
-                        html = `<video src="${path}" width="100%" controls></video>`;
+                        html = `<video src="${path}" width="100%" autoplay muted controls></video>`;
                     } else if (this.modoFiles == 'D') {
                         if (tipo == 'pdf') {
                             html = `<iframe src="${path}" width="100%" height="730" frameborder="0"></iframe>`;

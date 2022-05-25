@@ -29,7 +29,7 @@ class Modal extends Controller
             unset($params['id']);
             $objModal = new ModalModel();
             $resp = $objModal->actualizarPopUp($params, $id);
-            if ($resp) {
+            if ($resp == 1 || $resp == 0) {
                 echo 'OK';
             }
         } else {

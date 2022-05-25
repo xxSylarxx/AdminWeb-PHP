@@ -3,3 +3,4 @@
 /public/img/web/*
 /public/files/*
 /public/video/*
+/core/Config.php
