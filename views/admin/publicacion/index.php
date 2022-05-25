@@ -15,6 +15,7 @@
 
 <body>
 
+    <script src="<?= PATH_PUBLIC ?>/js/bootstrap.min.js"></script>
     <script async src="https://cdn.jsdelivr.net/npm/sweetalert2@11.1.5/dist/sweetalert2.min.js"></script>
 
     <?php include_once PATH_ROOT . '/views/admin/header.php'; ?>
@@ -118,13 +119,19 @@
                         <?php } else { ?>
                             <select class="form-select" onchange="cambiarCategoria(this.value)">
                                 <option value="all"><?= $this->translate('Todas') ?></option>
-                                <?php foreach ($this->listCategorias as $key => $categ) { ?>
+                                <?php foreach ($this->listCategorias as $key => $categ) :
+                                    if ($categ['estado'] == 'I') {
+                                        continue;
+                                    }
+                                ?>
                                     <option value="<?= $categ['idcatg'] ?>" <?= $this->categoriaId == $key ? 'selected' : '' ?>><?= $categ['nombre'] ?></option>
-                                <?php } ?>
+                                <?php endforeach; ?>
                             </select>
                         <?php } ?>
                     </div>
                 <?php endif; ?>
+
+                <button class="btn btn-danger me-3" data-bs-toggle="modal" data-bs-target="#modalCategorias"><i class="far fa-list-alt"></i>&nbsp; Ver categorías</button>
                 <a href="/admin/publicacion/editor" class="btn btn-success text-white"><i class="fas fa-plus"></i>&nbsp; <?= $this->translate('Nueva publicación') ?></a>
             </div>
         </div>
@@ -164,6 +171,45 @@
                 <ul class="pagination justify-content-end mb-0">
                     <?php echo count($this->listPublicaciones) > 0 ? $this->listPagination : null ?>
                 </ul>
+            </div>
+        </div>
+
+        <div class="modal fade" id="modalCategorias" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="input-group w-50 mb-4 mt-3 mx-auto">
+                            <input type="text" class="form-control" id="txtcategoria" placeholder="Nombre de categoría">
+                            <span class="btn btn-success text-white" onclick="actionCategoria('save')"><i class="fas fa-plus"></i>&nbsp; Agregar</span>
+                        </div>
+                        <table class="table">
+                            <thead style="font-size: 13px;">
+                                <tr>
+                                    <th class="text-center">#</th>
+                                    <th>NOMBRE</th>
+                                    <th class="text-center">TOTAL</th>
+                                    <th class="text-center">FECHA DE REGISTRO</th>
+                                    <th>ACTIVO</th>
+                                </tr>
+                            </thead>
+                            <tbody style="border-top: none;">
+                                <?php foreach ($this->listCategorias as $key => $categ) { ?>
+                                    <tr>
+                                        <td class="text-center"><?= $categ['idcatg'] ?></td>
+                                        <td><?= $categ['nombre'] ?></td>
+                                        <td class="text-center"><?= $categ['totalPub'] ?></td>
+                                        <td class="text-center"><?= $categ['fecreg'] ?></td>
+                                        <td>
+                                            <div class="form-check form-switch">
+                                                <input class="form-check-input" type="checkbox" role="switch" id="catcheck-<?= $categ['idcatg'] ?>" onchange="actionCategoria('estado', <?= $categ['idcatg'] ?>)" <?= $categ['estado'] == 'A' ? 'checked' : '' ?>>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
@@ -217,6 +263,32 @@
             }).then(function(res) {
                 if (res.trim() !== 'OK') {
                     sweetAlert(res, 'error');
+                }
+            });
+        }
+
+        const actionCategoria = (action, idcateg = null) => {
+            let url = '/admin/publicacion/categoria';
+            if (action == 'save') {
+                const name = document.getElementById('txtcategoria').value;
+                if (name == '') return;
+                url += '/save/' + name;
+            } else if (action == 'estado') {
+                const estado = document.getElementById('catcheck-' + idcateg).checked;
+                url += `/${idcateg}/${estado ? 'A' : 'I'}`;
+            }
+            console.log(url);
+            fetch(url, {
+                method: 'GET'
+            }).then(function(res) {
+                return res.text();
+            }).then(function(res) {
+                if (res.trim() == 'OK') {
+                    if (action == 'save') {
+                        location.reload();
+                    }
+                } else {
+                    alert(res);
                 }
             });
         }

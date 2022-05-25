@@ -14,65 +14,6 @@ class PublicacionModel extends DataBase
         $this->bd = parent::connect();
     }
 
-    public function listarCategorias()
-    {
-        try {
-            $query = $this->bd->from('categorias')->where("estado = 'A'")->fetchAll();
-            $listCategorias = array();
-            if (PUB_SUB_CATEG) {
-                foreach ($query as $row) {
-                    $key = $row['idcatg'];
-                    $pad = $row['catpad'];
-                    if (!empty($pad)) {
-                        $listCategorias[$pad]['subs'][$key] = $row;
-                    } else {
-                        $listCategorias[$key] = $row;
-                    }
-                }
-            } else {
-                foreach ($query as $row) {
-                    $key = $row['idcatg'];
-                    $listCategorias[$key] = $row;
-                }
-            }
-            return $listCategorias;
-        } catch (\PDOException $e) {
-            die($e->getMessage());
-        }
-    }
-
-    public function listarCategoriasWeb()
-    {
-        try {
-            $query = $this->bd->from('categorias')->where("estado = 'A'")->fetchAll();
-            $listCategorias = array();
-            foreach ($query as $row) {
-                $key = $row['idcatg'];
-                $listCategorias[$key] = $row;
-            }
-            return $listCategorias;
-        } catch (\PDOException $e) {
-            die($e->getMessage());
-        }
-    }
-
-    public function buscarCategoria($categ, $id = true)
-    {
-        try {
-            if ($id) {
-                $query = $this->bd->from('categorias')->where('idcatg', [$categ])->fetch();
-            } else {
-                $query = $this->bd->from('categorias')->where('filtro', [$categ])->fetch();
-            }
-            if (is_array($query)) {
-                return $query;
-            }
-            return null;
-        } catch (\PDOException $e) {
-            die($e->getMessage());
-        }
-    }
-
     public function insertarPublicacion(array $params)
     {
         try {

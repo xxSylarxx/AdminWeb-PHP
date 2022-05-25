@@ -145,7 +145,11 @@
                                 </select>
                             <?php } else { ?>
                                 <select class="form-select mt-1 mb-3" name="idcatg">
-                                    <?php foreach ($this->listCategorias as $key => $categ) : ?>
+                                    <?php foreach ($this->listCategorias as $key => $categ) :
+                                        if ($categ['estado'] == 'I') {
+                                            continue;
+                                        }
+                                    ?>
                                         <option value="<?= $key ?>" <?= $this->dataPub['idcatg'] == $key ? 'selected' : '' ?>><?= $categ['nombre'] ?></option>
                                     <?php endforeach; ?>
                                 </select>

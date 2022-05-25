@@ -2,5 +2,5 @@
 /public/img/galeria/*
 /public/img/web/*
 /public/files/*
-/public/video/*
-/core/Config.php
+/public/video/
+/core/*
